@@ -5,7 +5,7 @@ library(magrittr)
 
 sampleFile = "/g/krebs/barzaghi/HTS/SMF/MM/QuasR_input_files/Can_amplicons_NRF1KD_QuasR_input.txt"
 samples = "amplicon_DE_data"
-RegionOfInterest = GRanges("chr7", IRangesc(18990973, 18991389))
+RegionOfInterest = GRanges("chr7", IRanges(18990973, 18991389))
 RegionOfInterest_ext = GRanges("chr7", IRanges(18990931, 18991430))
 nrf1_motifs = GRanges(
   rep("chr7", 5),
