@@ -56,6 +56,58 @@ pl
 dev.off()
 
 # B
+Reduce(rbind, mclapply(seq(nrow(iteration_df)), function(i){
+  
+  k_value = iteration_df$k[i]
+  n_value = iteration_df$n[i]
+  
+  FootprintCharter(
+    MethSM = MethSM,
+    RegionOfInterest = RegionOfInterest,
+    k = k_value,
+    n = n_value,
+    cytosine.coverage.thr = min(5, n_value)
+  ) -> FC_results
+  
+  FC_results$footprints.df %>%
+    filter(biological.state == "noise") %>%
+    dplyr::select(footprint.idx) %>%
+    mutate(
+      k = k_value,
+      n = n_value,
+    ) -> return.df
+  
+  if(nrow(return.df) == 0){
+    return.df = data.frame(
+      footprint.idx = NA, k = k_value,n = n_value
+    )
+  }
+  
+  return(return.df)
+  
+}, mc.preschedule = TRUE, mc.cores = 7)) -> results
+
+results %>%
+  distinct(footprint.idx, k, n) %>%
+  group_by(k,n) %>%
+  summarise(nr_noise_footprints = n(), .groups = "drop") %>%
+  spread(k, nr_noise_footprints, fill = 0) %>%
+  mutate(n = factor(n, levels = rev(n))) %>%
+  arrange(n) %>%
+  column_to_rownames("n") %>%
+  as.matrix() %>%
+  Heatmap(
+    cluster_columns = FALSE, cluster_rows = FALSE, 
+    row_title = "n", column_title = "k", 
+    row_title_rot = 0, row_names_side = "left", row_names_centered = TRUE,
+    column_title_side = "bottom", column_names_rot = 0, column_names_centered = TRUE,
+    col = circlize::colorRamp2(colors = jcolors::jcolors_contin("pal12")(max(.)), breaks = seq(max(.))), heatmap_legend_param = list(at = c(1,3,10,15,20)), name = "nr noise footprints"
+  ) -> pl
+pdf("/g/krebs/barzaghi/analyses/15.02.24_bioinformatics_application_note_figures/supplementary_fig1b.pdf", width = 5, height = 4)
+pl
+dev.off()
+
+# C
 sampleFile = "/g/krebs/barzaghi/HTS/SMF/MM/QuasR_input_files/Can_amplicons_NRF1KD_QuasR_input.txt"
 samples = "amplicon_DE_data"
 RegionOfInterest = GRanges("chr7", IRanges(18990973, 18991389))
@@ -115,11 +167,11 @@ results %>%
     column_title_side = "bottom", column_names_rot = 0, column_names_centered = TRUE,
     col = circlize::colorRamp2(colors = jcolors::jcolors_contin("pal12")(max(.)), breaks = seq(max(.))), heatmap_legend_param = list(at = c(4,8,16,32,64)), name = "running time (sec)"
   ) -> pl
-pdf("/g/krebs/barzaghi/analyses/15.02.24_bioinformatics_application_note_figures/supplementary_fig1b.pdf", width = 5.5, height = 4.4)
+pdf("/g/krebs/barzaghi/analyses/15.02.24_bioinformatics_application_note_figures/supplementary_fig1c.pdf", width = 5.5, height = 4.4)
 pl
 dev.off()
 
-# C
+# D
 Reduce(rbind, mclapply(seq(nrow(iteration_df)), function(i){
   
   print(i)
@@ -173,6 +225,6 @@ results %>%
     column_title_side = "bottom", column_names_rot = 0, column_names_centered = TRUE,
     col = circlize::colorRamp2(colors = jcolors::jcolors_contin("pal12")(max(.)), breaks = seq(max(.))), heatmap_legend_param = list(at = c(50,100,500,1000,4000)), name = "peak RAM (MB)"
   ) -> pl
-pdf("/g/krebs/barzaghi/analyses/15.02.24_bioinformatics_application_note_figures/supplementary_fig1c.pdf", width = 5.5, height = 4.4)
+pdf("/g/krebs/barzaghi/analyses/15.02.24_bioinformatics_application_note_figures/supplementary_fig1d.pdf", width = 5.5, height = 4.4)
 pl
 dev.off()
